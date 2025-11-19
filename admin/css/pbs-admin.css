@@ -1,0 +1,318 @@
+/**
+ * PBS Schedule Viewer - Admin Styles
+ *
+ * @package PBS_Schedule_Viewer
+ * @version 1.0.0
+ */
+
+/* Dashboard Cards */
+.pbs-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.pbs-dashboard-card {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+}
+
+.pbs-dashboard-card-full {
+    grid-column: 1 / -1;
+}
+
+.pbs-dashboard-card h2 {
+    margin-top: 0;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 10px;
+    font-size: 18px;
+}
+
+.pbs-dashboard-card h3 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 15px;
+}
+
+/* Status Items */
+.pbs-status-list {
+    margin: 15px 0;
+}
+
+.pbs-status-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.pbs-status-item:last-child {
+    border-bottom: none;
+}
+
+.pbs-status-item .dashicons {
+    margin-right: 10px;
+    font-size: 20px;
+}
+
+.pbs-status-item .dashicons-yes-alt {
+    color: #46b450;
+}
+
+.pbs-status-item .dashicons-warning {
+    color: #ffb900;
+}
+
+/* Stats */
+.pbs-stats-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+    margin: 15px 0;
+}
+
+.pbs-stat-item {
+    text-align: center;
+    padding: 20px;
+    background: #f6f7f7;
+    border-radius: 4px;
+}
+
+.pbs-stat-number {
+    display: block;
+    font-size: 36px;
+    font-weight: bold;
+    color: #2271b1;
+    margin-bottom: 5px;
+}
+
+.pbs-stat-label {
+    display: block;
+    font-size: 14px;
+    color: #646970;
+}
+
+/* Station Search */
+#pbs-station-search {
+    margin-bottom: 10px;
+}
+
+.pbs-station-results {
+    margin-top: 10px;
+    border: 1px solid #ddd;
+    max-height: 300px;
+    overflow-y: auto;
+    display: none;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.pbs-station-result-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.pbs-station-result-item:hover {
+    background: #f0f0f1;
+}
+
+.pbs-station-result-item:last-child {
+    border-bottom: none;
+}
+
+.pbs-station-result-callsign {
+    display: block;
+    font-weight: bold;
+    color: #2271b1;
+    margin-bottom: 4px;
+}
+
+.pbs-station-result-name {
+    display: block;
+    color: #646970;
+    font-size: 13px;
+}
+
+/* Feed Selector */
+#pbs-feed-selector {
+    margin-top: 10px;
+}
+
+.pbs-feed-item {
+    padding: 10px;
+    border: 1px solid #ddd;
+    margin: 8px 0;
+    background: #f6f7f7;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.pbs-feed-item:hover {
+    background: #fff;
+}
+
+.pbs-feed-item label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin: 0;
+}
+
+.pbs-feed-item input[type="checkbox"] {
+    margin-right: 10px;
+    margin-top: 0;
+}
+
+.pbs-feed-item strong {
+    margin-right: 8px;
+}
+
+/* Cache Stats */
+.pbs-cache-stats {
+    background: #f6f7f7;
+    padding: 15px;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+.pbs-cache-stats p {
+    margin: 8px 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.pbs-cache-stats strong {
+    font-weight: 600;
+}
+
+/* Shortcode Reference */
+.pbs-dashboard-card code {
+    display: block;
+    background: #f6f7f7;
+    padding: 10px 12px;
+    margin: 10px 0;
+    border-left: 3px solid #2271b1;
+    font-family: Monaco, Consolas, "Andale Mono", "DejaVu Sans Mono", monospace;
+    font-size: 13px;
+    overflow-x: auto;
+}
+
+.pbs-dashboard-card ul {
+    margin: 10px 0 10px 20px;
+    list-style: disc;
+}
+
+.pbs-dashboard-card ul li {
+    margin: 5px 0;
+}
+
+.pbs-dashboard-card ul li code {
+    display: inline;
+    background: #f0f0f1;
+    padding: 2px 6px;
+    border: none;
+    border-radius: 3px;
+}
+
+/* Test Results */
+#pbs-test-results,
+#pbs-sync-results {
+    margin-top: 15px;
+}
+
+#pbs-test-results p,
+#pbs-sync-results p {
+    display: flex;
+    align-items: center;
+    margin: 8px 0;
+}
+
+#pbs-test-results .dashicons,
+#pbs-sync-results .dashicons {
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+/* Buttons */
+.pbs-dashboard-card .button {
+    margin-right: 10px;
+}
+
+/* Settings Tabs */
+.nav-tab-wrapper {
+    margin-bottom: 20px;
+}
+
+/* Form Tables */
+.form-table th {
+    width: 200px;
+}
+
+.form-table td {
+    padding: 15px 10px;
+}
+
+.form-table .description {
+    margin-top: 5px;
+    color: #646970;
+}
+
+/* Loading States */
+.pbs-loading {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #2271b1;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Success/Error Messages */
+.pbs-message-success {
+    color: #46b450;
+    padding: 10px;
+    background: #ecf7ed;
+    border-left: 4px solid #46b450;
+    margin: 10px 0;
+}
+
+.pbs-message-error {
+    color: #dc3232;
+    padding: 10px;
+    background: #ffebe8;
+    border-left: 4px solid #dc3232;
+    margin: 10px 0;
+}
+
+/* Responsive */
+@media (max-width: 782px) {
+    .pbs-dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pbs-stats-list {
+        grid-template-columns: 1fr;
+    }
+
+    .pbs-schedule-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .pbs-schedule-controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
