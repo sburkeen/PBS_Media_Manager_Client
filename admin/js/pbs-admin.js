@@ -28,6 +28,8 @@
         });
 
         function searchStations(query) {
+            console.log('Searching for stations with query:', query);
+
             $.ajax({
                 url: pbsScheduleAdmin.ajaxUrl,
                 type: 'POST',
@@ -37,12 +39,24 @@
                     query: query
                 },
                 success: function(response) {
+                    console.log('Station search response:', response);
                     if (response.success && response.data.results) {
                         displayStationResults(response.data.results);
+                    } else if (response.success) {
+                        console.warn('Search succeeded but no results array found:', response.data);
+                        $('#pbs-station-results').html('<div style="padding: 10px;">No stations found</div>').show();
+                    } else {
+                        console.error('Search failed:', response.data);
+                        $('#pbs-station-results').html('<div style="padding: 10px; color: #dc3232;">' + (response.data || 'Error searching stations') + '</div>').show();
                     }
                 },
-                error: function() {
-                    $('#pbs-station-results').html('<div style="padding: 10px; color: #dc3232;">Error searching stations</div>').show();
+                error: function(xhr, status, error) {
+                    console.error('Station search AJAX error:', status, error, xhr.responseText);
+                    var errorMsg = 'Error searching stations';
+                    if (xhr.responseJSON && xhr.responseJSON.data) {
+                        errorMsg += ': ' + xhr.responseJSON.data;
+                    }
+                    $('#pbs-station-results').html('<div style="padding: 10px; color: #dc3232;">' + errorMsg + '</div>').show();
                 }
             });
         }
@@ -81,10 +95,10 @@
             $('#pbs-station-results').hide();
 
             // Load feeds for this station
-            loadStationFeeds(station.id);
+            loadStationFeeds(station.call_sign);
         }
 
-        function loadStationFeeds(stationId) {
+        function loadStationFeeds(callsign) {
             var $feedSelector = $('#pbs-feed-selector');
             $feedSelector.html('<p>Loading feeds...</p>');
 
@@ -94,17 +108,22 @@
                 data: {
                     action: 'pbs_get_station_feeds',
                     nonce: pbsScheduleAdmin.nonce,
-                    station_id: stationId
+                    callsign: callsign
                 },
                 success: function(response) {
                     if (response.success && response.data.feeds) {
                         displayFeedSelector(response.data.feeds);
                     } else {
-                        $feedSelector.html('<p class="description">No feeds available for this station.</p>');
+                        var errorMsg = response.data || 'No feeds available for this station.';
+                        $feedSelector.html('<p class="description">' + errorMsg + '</p>');
                     }
                 },
-                error: function() {
-                    $feedSelector.html('<p style="color: #dc3232;">Error loading feeds</p>');
+                error: function(xhr, status, error) {
+                    var errorMsg = 'Error loading feeds';
+                    if (xhr.responseJSON && xhr.responseJSON.data) {
+                        errorMsg += ': ' + xhr.responseJSON.data;
+                    }
+                    $feedSelector.html('<p style="color: #dc3232;">' + errorMsg + '</p>');
                 }
             });
         }
@@ -264,9 +283,9 @@
         });
 
         // Load feeds on page load if station is already selected
-        var stationId = $('#pbs-station-id').val();
-        if (stationId) {
-            loadStationFeeds(stationId);
+        var callsign = $('#pbs_schedule_station_callsign').val();
+        if (callsign) {
+            loadStationFeeds(callsign);
         }
 
         // Initialize WordPress color picker for branding fields

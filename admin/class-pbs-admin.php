@@ -145,21 +145,34 @@ class PBS_Schedule_Viewer_Admin {
             wp_send_json_error('Insufficient permissions');
         }
 
-        $station_id = isset($_POST['station_id']) ? intval($_POST['station_id']) : 0;
+        $callsign = isset($_POST['callsign']) ? sanitize_text_field($_POST['callsign']) : '';
 
-        if (empty($station_id)) {
-            wp_send_json_error('Station ID is required');
+        if (empty($callsign)) {
+            wp_send_json_error('Station callsign is required');
         }
 
         $api_key = get_option('pbs_schedule_tvss_api_key', '');
-        $client = new PBS_TVSS_API_Client($api_key);
-        $feeds = $client->get_station_feeds($station_id);
 
-        if (is_wp_error($feeds)) {
-            wp_send_json_error($feeds->get_error_message());
+        if (empty($api_key)) {
+            wp_send_json_error('TV Schedules API key not configured. Please add your API key in the API Credentials tab.');
         }
 
-        wp_send_json_success($feeds);
+        $client = new PBS_TVSS_API_Client($api_key);
+
+        // Get channel/feed information for this station
+        $feeds = $client->get_channel_lookup($callsign);
+
+        if (is_wp_error($feeds)) {
+            wp_send_json_error('Unable to load feeds: ' . $feeds->get_error_message());
+        }
+
+        // Extract feeds from the response
+        $feed_list = array();
+        if (isset($feeds['feeds']) && is_array($feeds['feeds'])) {
+            $feed_list = $feeds['feeds'];
+        }
+
+        wp_send_json_success(array('feeds' => $feed_list));
     }
 
     /**

@@ -380,6 +380,7 @@ class PBS_TVSS_API_Client {
         ));
 
         if (is_wp_error($response)) {
+            error_log('PBS Station Search Error: ' . $response->get_error_message());
             return $response;
         }
 
@@ -387,13 +388,27 @@ class PBS_TVSS_API_Client {
         $body = wp_remote_retrieve_body($response);
 
         if ($code !== 200) {
-            return new WP_Error('api_error', 'Failed to search stations');
+            error_log(sprintf('PBS Station Search HTTP Error %d: %s', $code, $body));
+            return new WP_Error('api_error', sprintf('Failed to search stations (HTTP %d)', $code));
         }
 
         $data = json_decode($body, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log('PBS Station Search JSON Error: ' . json_last_error_msg());
             return new WP_Error('json_error', 'Failed to decode JSON response');
+        }
+
+        // Log the response for debugging
+        error_log('PBS Station Search Response: ' . print_r($data, true));
+
+        // PBS Station Finder API returns results wrapped in a 'results' key
+        // Return in a format that matches what the JavaScript expects
+        if (isset($data['results']) && is_array($data['results'])) {
+            return array('results' => $data['results']);
+        } elseif (is_array($data) && !isset($data['results'])) {
+            // If data is already an array of stations, wrap it
+            return array('results' => $data);
         }
 
         return $data;
