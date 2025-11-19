@@ -13,138 +13,220 @@ $mm_id = get_option('pbs_schedule_mm_client_id', '');
 $mm_secret = get_option('pbs_schedule_mm_client_secret', '');
 $mm_endpoint = get_option('pbs_schedule_mm_endpoint', '');
 
-$episodes = array();
+$seasons = array();
+$episodes_by_season = array();
+$extras = array();
 $show_data = null;
 
 if (!empty($mm_id) && !empty($mm_secret) && !empty($show_id)) {
     $mm_client = new PBS_Media_Manager_API_Client($mm_id, $mm_secret, $mm_endpoint);
-    $matcher = new PBS_Content_Matcher($mm_client);
 
     // Get show data
     $show_data = $mm_client->get_show($show_id);
 
-    // Get all episodes
-    $episodes = $matcher->get_all_show_episodes($show_id);
+    // Get all seasons
+    $seasons = $mm_client->get_show_seasons($show_id);
+
+    // Organize episodes by season
+    if (!empty($seasons) && is_array($seasons)) {
+        foreach ($seasons as $season) {
+            $season_id = $season['id'];
+            $season_ordinal = isset($season['attributes']['ordinal']) ? $season['attributes']['ordinal'] : 0;
+
+            $season_episodes = $mm_client->get_season_episodes($season_id);
+
+            if (!empty($season_episodes) && is_array($season_episodes)) {
+                $episodes_by_season[$season_ordinal] = array(
+                    'season' => $season,
+                    'episodes' => $season_episodes
+                );
+            }
+        }
+        ksort($episodes_by_season);
+    }
+
+    // Get extras (clips, previews, etc.)
+    $all_assets = $mm_client->get_show_assets($show_id, '', 'all_members');
+    if (!empty($all_assets) && is_array($all_assets)) {
+        foreach ($all_assets as $asset) {
+            $asset_type = isset($asset['attributes']['object_type']) ? $asset['attributes']['object_type'] : '';
+            if (in_array($asset_type, array('clip', 'preview', 'extra'))) {
+                $extras[] = $asset;
+            }
+        }
+    }
+}
+
+// Helper function to format duration
+function format_show_duration($seconds) {
+    $hours = floor($seconds / 3600);
+    $minutes = floor(($seconds % 3600) / 60);
+
+    if ($hours > 0 && $minutes > 0) {
+        return sprintf('%dh %dm', $hours, $minutes);
+    } elseif ($hours > 0) {
+        return sprintf('%dh', $hours);
+    } else {
+        return sprintf('%dm', $minutes);
+    }
+}
+
+// Get upcoming schedule for this show
+$nola_root = get_post_meta(get_the_ID(), '_pbs_nola_root', true);
+$upcoming_schedule = array();
+
+if (!empty($nola_root)) {
+    $tvss_key = get_option('pbs_schedule_tvss_api_key', '');
+    $callsign = get_option('pbs_schedule_station_callsign', '');
+
+    if (!empty($tvss_key) && !empty($callsign)) {
+        $tvss_client = new PBS_TVSS_API_Client($tvss_key);
+        // Get next 7 days of listings
+        for ($i = 0; $i < 7; $i++) {
+            $date = date('Ymd', strtotime("+$i days"));
+            $listings = $tvss_client->get_listings_by_date($callsign, $date, false);
+
+            if (!is_wp_error($listings) && isset($listings['feeds'])) {
+                foreach ($listings['feeds'] as $feed) {
+                    if (!empty($feed['listings'])) {
+                        foreach ($feed['listings'] as $listing) {
+                            if (isset($listing['nola_root']) && $listing['nola_root'] === $nola_root) {
+                                $upcoming_schedule[] = array(
+                                    'date' => $date,
+                                    'feed' => $feed['full_name'],
+                                    'listing' => $listing
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 ?>
 
-<div class="pbs-show-single">
-    <article id="post-<?php the_ID(); ?>" <?php post_class('pbs-show-article'); ?>>
-
-        <?php if (has_post_thumbnail()) : ?>
-            <div class="pbs-show-hero">
-                <?php the_post_thumbnail('large', array('class' => 'pbs-show-hero-image')); ?>
-            </div>
-        <?php endif; ?>
-
-        <div class="pbs-show-header">
-            <h1 class="pbs-show-title"><?php the_title(); ?></h1>
-
-            <?php if (has_excerpt()) : ?>
-                <div class="pbs-show-excerpt">
-                    <?php the_excerpt(); ?>
-                </div>
-            <?php endif; ?>
-        </div>
-
-        <div class="pbs-show-content">
+<article class="pbs-show-clean">
+    <header class="pbs-show-clean-header">
+        <h1><?php the_title(); ?></h1>
+        <div class="pbs-show-clean-description">
             <?php the_content(); ?>
         </div>
+    </header>
 
-        <?php if (!empty($episodes)) : ?>
-            <div class="pbs-show-episodes">
-                <h2 class="pbs-show-episodes-title">Available Episodes</h2>
+    <?php if (!empty($episodes_by_season)) : ?>
+        <?php foreach ($episodes_by_season as $season_ordinal => $season_data) : ?>
+            <section class="pbs-show-season-section">
+                <h2>Episodes (Season <?php echo esc_html($season_ordinal); ?>)</h2>
 
-                <div class="pbs-episodes-grid">
-                    <?php foreach ($episodes as $episode) : ?>
+                <ol class="pbs-show-episodes-clean">
+                    <?php foreach ($season_data['episodes'] as $index => $episode) : ?>
                         <?php
-                        $episode_title = isset($episode['attributes']['title']) ? $episode['attributes']['title'] : '';
+                        $episode_title = isset($episode['attributes']['title']) ? $episode['attributes']['title'] : 'Untitled Episode';
                         $episode_description = isset($episode['attributes']['description_short']) ? $episode['attributes']['description_short'] : '';
+                        $episode_ordinal = isset($episode['attributes']['ordinal']) ? $episode['attributes']['ordinal'] : ($index + 1);
                         $episode_id = $episode['id'];
 
-                        // Get episode assets
-                        $assets = array();
-                        if ($mm_client) {
+                        // Get episode duration from assets
+                        $duration_text = '';
+                        if (!empty($mm_client)) {
                             $assets = $mm_client->get_episode_assets($episode_id, 'full_length', 'all_members');
-                        }
-
-                        // Get episode image
-                        $episode_images = array();
-                        if ($mm_client && method_exists($mm_client, 'get_episode_images')) {
-                            $episode_images = $mm_client->get_episode_images($episode_id);
-                        }
-
-                        $image_url = '';
-                        if (!empty($episode_images) && is_array($episode_images)) {
-                            foreach ($episode_images as $image) {
-                                if (isset($image['image'])) {
-                                    $image_url = $image['image'];
-                                    break;
-                                }
+                            if (!empty($assets) && is_array($assets) && isset($assets[0]['attributes']['duration'])) {
+                                $duration_text = format_show_duration($assets[0]['attributes']['duration']);
                             }
                         }
                         ?>
 
-                        <div class="pbs-episode-card" data-episode-id="<?php echo esc_attr($episode_id); ?>">
-                            <?php if ($image_url) : ?>
-                                <div class="pbs-episode-image">
-                                    <img src="<?php echo esc_url($image_url); ?>"
-                                         alt="<?php echo esc_attr($episode_title); ?>"
-                                         loading="lazy">
+                        <li class="pbs-episode-clean">
+                            <div class="pbs-episode-clean-title">
+                                <strong><?php echo esc_html($episode_title); ?></strong>
+                            </div>
+
+                            <div class="pbs-episode-clean-meta">
+                                S<?php echo esc_html($season_ordinal); ?> E<?php echo esc_html($episode_ordinal); ?>
+                                <?php if ($duration_text) : ?>
+                                    · <?php echo esc_html($duration_text); ?>
+                                <?php endif; ?>
+                            </div>
+
+                            <?php if ($episode_description) : ?>
+                                <div class="pbs-episode-clean-description">
+                                    <?php echo esc_html($episode_description); ?>
                                 </div>
                             <?php endif; ?>
 
-                            <div class="pbs-episode-content">
-                                <h3 class="pbs-episode-title"><?php echo esc_html($episode_title); ?></h3>
-
-                                <?php if ($episode_description) : ?>
-                                    <div class="pbs-episode-description">
-                                        <?php echo esc_html($episode_description); ?>
-                                    </div>
-                                <?php endif; ?>
-
-                                <?php if (!empty($assets) && is_array($assets)) : ?>
-                                    <div class="pbs-episode-meta">
-                                        <span class="pbs-badge pbs-badge-available">Available</span>
-
-                                        <?php
-                                        // Get first asset for duration info
-                                        $asset = $assets[0];
-                                        if (isset($asset['attributes']['duration'])) {
-                                            $duration_seconds = $asset['attributes']['duration'];
-                                            $duration_minutes = round($duration_seconds / 60);
-                                            ?>
-                                            <span class="pbs-episode-duration"><?php echo esc_html($duration_minutes); ?> min</span>
-                                        <?php } ?>
-                                    </div>
-
-                                    <div class="pbs-episode-actions">
-                                        <?php
-                                        // Check if we have a player URL
-                                        if (isset($asset['attributes']['player_url'])) {
-                                            ?>
-                                            <a href="<?php echo esc_url($asset['attributes']['player_url']); ?>"
-                                               class="pbs-button pbs-button-primary"
-                                               target="_blank">
-                                                Watch Now
-                                            </a>
-                                        <?php } ?>
-                                    </div>
-                                <?php else : ?>
-                                    <div class="pbs-episode-meta">
-                                        <span class="pbs-badge pbs-badge-unavailable">Not Available</span>
-                                    </div>
-                                <?php endif; ?>
+                            <div class="pbs-episode-clean-link">
+                                <a href="#">Watch episode</a>
                             </div>
+                        </li>
+                    <?php endforeach; ?>
+                </ol>
+            </section>
+        <?php endforeach; ?>
+    <?php endif; ?>
+
+    <?php if (!empty($extras)) : ?>
+        <section class="pbs-show-extras-section">
+            <h2>Extras + Features</h2>
+
+            <ul class="pbs-show-extras-clean">
+                <?php foreach ($extras as $extra) : ?>
+                    <?php
+                    $extra_title = isset($extra['attributes']['title']) ? $extra['attributes']['title'] : 'Untitled';
+                    $extra_description = isset($extra['attributes']['description_short']) ? $extra['attributes']['description_short'] : '';
+                    $duration_text = '';
+                    if (isset($extra['attributes']['duration'])) {
+                        $duration_text = format_show_duration($extra['attributes']['duration']);
+                    }
+                    ?>
+
+                    <li class="pbs-extra-clean">
+                        <div class="pbs-extra-clean-title">
+                            <strong><?php echo esc_html($extra_title); ?></strong>
                         </div>
 
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        <?php endif; ?>
+                        <?php if ($duration_text) : ?>
+                            <div class="pbs-extra-clean-duration">
+                                <?php echo esc_html($duration_text); ?>
+                                <?php if ($extra_description) : ?>
+                                    · <?php echo esc_html($extra_description); ?>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
 
-    </article>
-</div>
+                        <div class="pbs-extra-clean-link">
+                            <a href="#">Watch clip</a>
+                        </div>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </section>
+    <?php endif; ?>
+
+    <?php if (!empty($upcoming_schedule)) : ?>
+        <section class="pbs-show-upcoming-section">
+            <h2>Upcoming TV Schedule</h2>
+
+            <ul class="pbs-show-upcoming-clean">
+                <?php
+                $timezone = isset($schedule['timezone']) ? $schedule['timezone'] : 'America/New_York';
+                foreach ($upcoming_schedule as $upcoming) :
+                    $date_formatted = date('D M j', strtotime($upcoming['date']));
+                    $time_formatted = PBS_TVSS_API_Client::format_time($upcoming['listing']['start_time'], $timezone);
+                    $episode_title = isset($upcoming['listing']['episode_title']) ? $upcoming['listing']['episode_title'] : '';
+                ?>
+                    <li class="pbs-upcoming-clean">
+                        <?php echo esc_html($date_formatted); ?> · <?php echo esc_html($time_formatted); ?> · <?php echo esc_html($upcoming['feed']); ?>
+                        <?php if ($episode_title) : ?>
+                            · <em><?php echo esc_html($episode_title); ?></em>
+                        <?php endif; ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </section>
+    <?php endif; ?>
+
+</article>
 
 <?php
 get_footer();

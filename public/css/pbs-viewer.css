@@ -558,3 +558,261 @@
         content: "...";
     }
 }
+
+/* ============================================
+   CLEAN SCHEDULE STYLES (Markdown-like format)
+   ============================================ */
+
+.pbs-schedule-clean {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    line-height: 1.6;
+}
+
+.pbs-schedule-clean-header h1 {
+    font-size: 32px;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 15px;
+}
+
+.pbs-schedule-feed-section {
+    margin-bottom: 50px;
+}
+
+.pbs-schedule-feed-section h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    margin-top: 40px;
+}
+
+.pbs-schedule-listings-clean {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.pbs-schedule-item-clean {
+    margin-bottom: 30px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.pbs-schedule-item-clean:last-child {
+    border-bottom: none;
+}
+
+.pbs-schedule-time-clean {
+    margin-bottom: 5px;
+}
+
+.pbs-schedule-time-clean strong {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.pbs-schedule-show-info {
+    margin-left: 0;
+}
+
+.pbs-schedule-show-title {
+    margin-bottom: 5px;
+}
+
+.pbs-schedule-show-title strong {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.pbs-schedule-episode-title {
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.pbs-schedule-episode-title em {
+    font-style: italic;
+    color: #666;
+}
+
+.pbs-schedule-duration-clean,
+.pbs-schedule-description-clean {
+    margin-bottom: 8px;
+    color: #444;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.pbs-schedule-link-clean {
+    margin-top: 10px;
+}
+
+.pbs-schedule-link-clean a {
+    color: #0063dc;
+    text-decoration: none;
+}
+
+.pbs-schedule-link-clean a:hover {
+    text-decoration: underline;
+}
+
+/* ============================================
+   CLEAN SHOW PAGE STYLES
+   ============================================ */
+
+.pbs-show-clean {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    line-height: 1.6;
+}
+
+.pbs-show-clean-header h1 {
+    font-size: 36px;
+    margin-bottom: 15px;
+}
+
+.pbs-show-clean-description {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 40px;
+    color: #444;
+}
+
+.pbs-show-season-section,
+.pbs-show-extras-section,
+.pbs-show-upcoming-section {
+    margin-top: 50px;
+    margin-bottom: 40px;
+}
+
+.pbs-show-season-section h2,
+.pbs-show-extras-section h2,
+.pbs-show-upcoming-section h2 {
+    font-size: 24px;
+    margin-bottom: 25px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.pbs-show-episodes-clean {
+    list-style: none;
+    counter-reset: episode-counter;
+    padding: 0;
+    margin: 0;
+}
+
+.pbs-show-episodes-clean .pbs-episode-clean {
+    counter-increment: episode-counter;
+    margin-bottom: 25px;
+    padding-left: 35px;
+    position: relative;
+}
+
+.pbs-show-episodes-clean .pbs-episode-clean::before {
+    content: counter(episode-counter) ".";
+    position: absolute;
+    left: 0;
+    font-weight: 600;
+    color: #666;
+}
+
+.pbs-episode-clean-title strong {
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.pbs-episode-clean-meta {
+    font-size: 14px;
+    color: #666;
+    margin-top: 3px;
+    margin-bottom: 8px;
+}
+
+.pbs-episode-clean-description {
+    font-size: 15px;
+    line-height: 1.5;
+    color: #444;
+    margin-bottom: 8px;
+}
+
+.pbs-episode-clean-link a {
+    color: #0063dc;
+    text-decoration: none;
+    font-size: 15px;
+}
+
+.pbs-episode-clean-link a:hover {
+    text-decoration: underline;
+}
+
+.pbs-show-extras-clean {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.pbs-extra-clean {
+    margin-bottom: 20px;
+    padding-left: 20px;
+    position: relative;
+}
+
+.pbs-extra-clean::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    font-weight: 600;
+    color: #666;
+}
+
+.pbs-extra-clean-title strong {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.pbs-extra-clean-duration {
+    font-size: 14px;
+    color: #666;
+    margin-top: 3px;
+    margin-bottom: 8px;
+}
+
+.pbs-extra-clean-link a {
+    color: #0063dc;
+    text-decoration: none;
+    font-size: 15px;
+}
+
+.pbs-extra-clean-link a:hover {
+    text-decoration: underline;
+}
+
+.pbs-show-upcoming-clean {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.pbs-upcoming-clean {
+    margin-bottom: 12px;
+    padding-left: 20px;
+    position: relative;
+    font-size: 15px;
+    color: #444;
+}
+
+.pbs-upcoming-clean::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    font-weight: 600;
+    color: #666;
+}
+
+.pbs-upcoming-clean em {
+    font-style: italic;
+    color: #666;
+}
