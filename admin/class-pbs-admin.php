@@ -213,16 +213,58 @@ class PBS_Schedule_Viewer_Admin {
         $mm_secret = get_option('pbs_schedule_mm_client_secret', '');
         $mm_endpoint = get_option('pbs_schedule_mm_endpoint', '');
 
-        if (!empty($mm_id) && !empty($mm_secret) && !empty($mm_endpoint)) {
-            $mm_client = new PBS_Media_Manager_API_Client($mm_id, $mm_secret, $mm_endpoint);
-            $mm_test = $mm_client->get_shows(array('page-size' => 1));
+        if (empty($mm_endpoint)) {
+            $mm_endpoint = 'https://media.services.pbs.org/api/v1';
+        }
 
-            $results['media_manager'] = array(
-                'success' => !is_wp_error($mm_test) && is_array($mm_test),
-                'message' => (!is_wp_error($mm_test) && is_array($mm_test)) ?
-                    'Successfully connected to Media Manager API' :
-                    'Failed to connect to Media Manager API'
-            );
+        if (!empty($mm_id) && !empty($mm_secret)) {
+            // Check if cURL is available
+            if (!function_exists('curl_init')) {
+                $results['media_manager'] = array(
+                    'success' => false,
+                    'message' => 'cURL PHP extension is not installed'
+                );
+            } else {
+                try {
+                    $mm_client = new PBS_Media_Manager_API_Client($mm_id, $mm_secret, $mm_endpoint);
+                    $mm_test = $mm_client->get_shows(array('page-size' => 1));
+
+                    // Check for error response
+                    if (isset($mm_test['errors'])) {
+                        $error_msg = 'API Error';
+                        if (isset($mm_test['errors']['info']['http_code'])) {
+                            $error_msg .= ' (HTTP ' . $mm_test['errors']['info']['http_code'] . ')';
+                        }
+                        if (isset($mm_test['errors']['response'][0]['title'])) {
+                            $error_msg .= ': ' . $mm_test['errors']['response'][0]['title'];
+                        }
+                        $results['media_manager'] = array(
+                            'success' => false,
+                            'message' => $error_msg
+                        );
+                    } elseif (is_array($mm_test) && !empty($mm_test)) {
+                        $results['media_manager'] = array(
+                            'success' => true,
+                            'message' => 'Successfully connected to Media Manager API (found ' . count($mm_test) . ' shows)'
+                        );
+                    } else {
+                        $results['media_manager'] = array(
+                            'success' => false,
+                            'message' => 'Invalid response from Media Manager API'
+                        );
+                    }
+                } catch (Throwable $e) {
+                    $results['media_manager'] = array(
+                        'success' => false,
+                        'message' => 'Exception: ' . $e->getMessage()
+                    );
+                } catch (Exception $e) {
+                    $results['media_manager'] = array(
+                        'success' => false,
+                        'message' => 'Exception: ' . $e->getMessage()
+                    );
+                }
+            }
         } else {
             $results['media_manager'] = array(
                 'success' => false,
@@ -272,11 +314,20 @@ class PBS_Schedule_Viewer_Admin {
 
         error_log('PBS Sync Shows: Starting sync with endpoint ' . $mm_endpoint);
 
+        // Check if cURL is available
+        if (!function_exists('curl_init')) {
+            error_log('PBS Sync Shows: cURL extension is not installed');
+            wp_send_json_error('cURL PHP extension is required but not installed. Please contact your hosting provider.');
+        }
+
         try {
+            error_log('PBS Sync Shows: Creating Media Manager client');
             $mm_client = new PBS_Media_Manager_API_Client($mm_id, $mm_secret, $mm_endpoint);
 
+            error_log('PBS Sync Shows: Calling get_shows()');
             // Limit to first page for testing - remove page-size to get all shows
             $shows = $mm_client->get_shows(array('page-size' => 50));
+            error_log('PBS Sync Shows: get_shows() returned');
 
             // Log the response for debugging
             error_log('PBS Sync Shows: API Response type: ' . gettype($shows));
@@ -373,9 +424,15 @@ class PBS_Schedule_Viewer_Admin {
                 'total' => count($shows)
             ));
 
+        } catch (Throwable $e) {
+            error_log('PBS Sync Shows Exception: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            error_log('PBS Sync Shows Stack Trace: ' . $e->getTraceAsString());
+            wp_send_json_error('Error occurred: ' . $e->getMessage() . '. Check error logs for details.');
         } catch (Exception $e) {
-            error_log('PBS Sync Shows Exception: ' . $e->getMessage());
-            wp_send_json_error('Exception occurred: ' . $e->getMessage());
+            // Fallback for PHP 5.x
+            error_log('PBS Sync Shows Exception: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            error_log('PBS Sync Shows Stack Trace: ' . $e->getTraceAsString());
+            wp_send_json_error('Error occurred: ' . $e->getMessage() . '. Check error logs for details.');
         }
     }
 }
