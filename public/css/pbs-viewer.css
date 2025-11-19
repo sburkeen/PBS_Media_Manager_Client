@@ -573,9 +573,46 @@
 
 .pbs-schedule-clean-header h1 {
     font-size: 32px;
-    margin-bottom: 30px;
-    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 20px;
+}
+
+.pbs-time-period-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
     padding-bottom: 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.pbs-time-period-link {
+    padding: 8px 16px;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.pbs-time-period-link:hover {
+    background: #e8e8e8;
+    border-color: #999;
+}
+
+.pbs-time-period-link.active {
+    background: #0063dc;
+    border-color: #0063dc;
+    color: #fff;
+}
+
+.pbs-time-period-info {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 30px;
+    font-style: italic;
 }
 
 .pbs-schedule-feed-section {

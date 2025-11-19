@@ -50,7 +50,8 @@ class PBS_Schedule_Viewer_Shortcodes {
             'hours' => get_option('pbs_schedule_display_hours', 6),
             'feed' => '',
             'images' => get_option('pbs_schedule_show_images', true) ? 'yes' : 'no',
-            'date' => date('Ymd')
+            'date' => date('Ymd'),
+            'time_period' => '' // all_day, early_morning, morning, afternoon, evening
         ), $atts, 'pbs_schedule');
 
         // Convert string to boolean
@@ -69,8 +70,20 @@ class PBS_Schedule_Viewer_Shortcodes {
             return '<div class="pbs-schedule-error">' . esc_html($schedule->get_error_message()) . '</div>';
         }
 
-        // Filter by time range
-        $schedule = $public->filter_schedule_by_hours($schedule, intval($atts['hours']));
+        // Add formatted date to schedule for template use
+        $date_obj = DateTime::createFromFormat('Ymd', $atts['date']);
+        if ($date_obj) {
+            $schedule['date_formatted'] = $date_obj->format('l, M j');
+            $schedule['date_raw'] = $atts['date'];
+        }
+
+        // Filter by time period if specified
+        if (!empty($atts['time_period'])) {
+            $schedule = $public->filter_by_time_period($schedule, $atts['time_period']);
+        }
+
+        // Set current time period for template
+        $schedule['time_period'] = $atts['time_period'];
 
         // Load appropriate template
         ob_start();

@@ -255,4 +255,56 @@ class PBS_Schedule_Viewer_Public {
 
         return $schedule;
     }
+
+    /**
+     * Filter schedule by time period
+     *
+     * @param array $schedule Schedule data
+     * @param string $time_period Time period (early_morning, morning, afternoon, evening, all_day)
+     * @return array Filtered schedule
+     */
+    public function filter_by_time_period($schedule, $time_period) {
+        if (!isset($schedule['feeds']) || !is_array($schedule['feeds'])) {
+            return $schedule;
+        }
+
+        // Define time ranges in HHMM format
+        $time_ranges = array(
+            'early_morning' => array('start' => '0000', 'end' => '0629'),  // 12am - 6:29am
+            'morning' => array('start' => '0700', 'end' => '1129'),        // 7am - 11:29am
+            'afternoon' => array('start' => '1200', 'end' => '1829'),      // 12pm - 6:29pm
+            'evening' => array('start' => '1830', 'end' => '2359'),        // 6:30pm - 11:59pm
+            'all_day' => array('start' => '0000', 'end' => '2359')         // All day
+        );
+
+        // If invalid or all_day, return all listings
+        if ($time_period === 'all_day' || !isset($time_ranges[$time_period])) {
+            return $schedule;
+        }
+
+        $range = $time_ranges[$time_period];
+        $start_time = intval($range['start']);
+        $end_time = intval($range['end']);
+
+        foreach ($schedule['feeds'] as &$feed) {
+            if (!isset($feed['listings']) || !is_array($feed['listings'])) {
+                continue;
+            }
+
+            $filtered_listings = array();
+
+            foreach ($feed['listings'] as $listing) {
+                $listing_time = intval($listing['start_time']);
+
+                // Check if listing falls within time range
+                if ($listing_time >= $start_time && $listing_time <= $end_time) {
+                    $filtered_listings[] = $listing;
+                }
+            }
+
+            $feed['listings'] = $filtered_listings;
+        }
+
+        return $schedule;
+    }
 }

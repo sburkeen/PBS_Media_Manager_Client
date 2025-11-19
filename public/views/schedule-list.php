@@ -17,7 +17,9 @@ if (!defined('ABSPATH')) {
 }
 
 // Get date from schedule or use today
-$schedule_date = isset($schedule['date']) ? $schedule['date'] : date('l, M j');
+$schedule_date = isset($schedule['date_formatted']) ? $schedule['date_formatted'] : date('l, M j');
+$schedule_date_raw = isset($schedule['date_raw']) ? $schedule['date_raw'] : date('Ymd');
+$current_period = isset($schedule['time_period']) ? $schedule['time_period'] : '';
 $timezone = isset($schedule['timezone']) ? $schedule['timezone'] : 'America/New_York';
 
 // Helper function to format duration
@@ -33,11 +35,61 @@ function format_duration($minutes) {
         return sprintf('%d minute%s', $mins, $mins > 1 ? 's' : '');
     }
 }
+
+// Define time periods for filtering
+$time_periods = array(
+    '' => 'All Day',
+    'early_morning' => 'Early Morning',
+    'morning' => 'Morning',
+    'afternoon' => 'Afternoon',
+    'evening' => 'Evening'
+);
 ?>
 
 <article class="pbs-schedule-clean">
     <header class="pbs-schedule-clean-header">
         <h1>TV Schedule for <?php echo esc_html($schedule_date); ?></h1>
+
+        <nav class="pbs-time-period-nav">
+            <?php foreach ($time_periods as $period_key => $period_label) : ?>
+                <?php
+                $is_active = ($current_period === $period_key);
+                $class = $is_active ? 'pbs-time-period-link active' : 'pbs-time-period-link';
+
+                // Build URL with time_period parameter
+                $current_url = add_query_arg(array());
+                if (!empty($period_key)) {
+                    $link_url = add_query_arg('time_period', $period_key, $current_url);
+                } else {
+                    $link_url = remove_query_arg('time_period', $current_url);
+                }
+                ?>
+                <a href="<?php echo esc_url($link_url); ?>" class="<?php echo esc_attr($class); ?>">
+                    <?php echo esc_html($period_label); ?>
+                </a>
+            <?php endforeach; ?>
+        </nav>
+
+        <p class="pbs-time-period-info">
+            <?php
+            switch ($current_period) {
+                case 'early_morning':
+                    echo 'Showing programs from 12:00 AM - 6:29 AM';
+                    break;
+                case 'morning':
+                    echo 'Showing programs from 7:00 AM - 11:29 AM';
+                    break;
+                case 'afternoon':
+                    echo 'Showing programs from 12:00 PM - 6:29 PM';
+                    break;
+                case 'evening':
+                    echo 'Showing programs from 6:30 PM - 11:59 PM';
+                    break;
+                default:
+                    echo 'Showing all programs for this day';
+            }
+            ?>
+        </p>
     </header>
 
     <?php if (isset($schedule['feeds']) && !empty($schedule['feeds'])) : ?>
