@@ -45,6 +45,15 @@ class PBS_Schedule_Viewer_Settings {
         register_setting('pbs_schedule_cache', 'pbs_schedule_cache_schedule_duration');
         register_setting('pbs_schedule_cache', 'pbs_schedule_cache_ondemand_duration');
 
+        // Branding Settings
+        register_setting('pbs_schedule_branding', 'pbs_schedule_brand_primary');
+        register_setting('pbs_schedule_branding', 'pbs_schedule_brand_primary_soft');
+        register_setting('pbs_schedule_branding', 'pbs_schedule_brand_text');
+        register_setting('pbs_schedule_branding', 'pbs_schedule_brand_muted');
+        register_setting('pbs_schedule_branding', 'pbs_schedule_brand_border');
+        register_setting('pbs_schedule_branding', 'pbs_schedule_brand_surface');
+        register_setting('pbs_schedule_branding', 'pbs_schedule_brand_font');
+
         // Add sections
         add_settings_section(
             'pbs_schedule_api_section',
@@ -74,11 +83,19 @@ class PBS_Schedule_Viewer_Settings {
             'pbs_schedule_cache'
         );
 
+        add_settings_section(
+            'pbs_schedule_branding_section',
+            'Branding & Colors',
+            array(__CLASS__, 'render_branding_section'),
+            'pbs_schedule_branding'
+        );
+
         // Add fields
         self::add_api_fields();
         self::add_station_fields();
         self::add_display_fields();
         self::add_cache_fields();
+        self::add_branding_fields();
     }
 
     /**
@@ -480,5 +497,128 @@ class PBS_Schedule_Viewer_Settings {
             <button type="button" class="button" id="pbs-clear-cache">Clear Cache</button>
         </div>
         <?php
+    }
+
+    /**
+     * Add branding fields
+     */
+    private static function add_branding_fields() {
+        add_settings_field(
+            'brand_primary',
+            'Primary Brand Color',
+            array(__CLASS__, 'render_color_field'),
+            'pbs_schedule_branding',
+            'pbs_schedule_branding_section',
+            array(
+                'name' => 'pbs_schedule_brand_primary',
+                'default' => '#0063dc',
+                'description' => 'Main accent color for links and highlights'
+            )
+        );
+
+        add_settings_field(
+            'brand_primary_soft',
+            'Soft Primary Color',
+            array(__CLASS__, 'render_color_field'),
+            'pbs_schedule_branding',
+            'pbs_schedule_branding_section',
+            array(
+                'name' => 'pbs_schedule_brand_primary_soft',
+                'default' => '#f1f6ff',
+                'description' => 'Light background color for accented elements'
+            )
+        );
+
+        add_settings_field(
+            'brand_text',
+            'Text Color',
+            array(__CLASS__, 'render_color_field'),
+            'pbs_schedule_branding',
+            'pbs_schedule_branding_section',
+            array(
+                'name' => 'pbs_schedule_brand_text',
+                'default' => '#111111',
+                'description' => 'Primary text color'
+            )
+        );
+
+        add_settings_field(
+            'brand_muted',
+            'Muted Text Color',
+            array(__CLASS__, 'render_color_field'),
+            'pbs_schedule_branding',
+            'pbs_schedule_branding_section',
+            array(
+                'name' => 'pbs_schedule_brand_muted',
+                'default' => '#555555',
+                'description' => 'Secondary/muted text color'
+            )
+        );
+
+        add_settings_field(
+            'brand_border',
+            'Border Color',
+            array(__CLASS__, 'render_color_field'),
+            'pbs_schedule_branding',
+            'pbs_schedule_branding_section',
+            array(
+                'name' => 'pbs_schedule_brand_border',
+                'default' => '#e3e3e3',
+                'description' => 'Border and separator color'
+            )
+        );
+
+        add_settings_field(
+            'brand_surface',
+            'Surface Color',
+            array(__CLASS__, 'render_color_field'),
+            'pbs_schedule_branding',
+            'pbs_schedule_branding_section',
+            array(
+                'name' => 'pbs_schedule_brand_surface',
+                'default' => '#ffffff',
+                'description' => 'Background color for cards and surfaces'
+            )
+        );
+
+        add_settings_field(
+            'brand_font',
+            'Font Stack',
+            array(__CLASS__, 'render_text_field'),
+            'pbs_schedule_branding',
+            'pbs_schedule_branding_section',
+            array(
+                'name' => 'pbs_schedule_brand_font',
+                'default' => 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+                'description' => 'CSS font-family value'
+            )
+        );
+    }
+
+    /**
+     * Render branding section
+     */
+    public static function render_branding_section() {
+        echo '<p>Customize the colors and typography to match your station\'s branding.</p>';
+    }
+
+    /**
+     * Render color field
+     */
+    public static function render_color_field($args) {
+        $name = $args['name'];
+        $value = get_option($name, isset($args['default']) ? $args['default'] : '#000000');
+        $description = isset($args['description']) ? $args['description'] : '';
+
+        printf(
+            '<input type="text" name="%s" value="%s" class="pbs-color-field" data-default-color="%s" />',
+            esc_attr($name),
+            esc_attr($value),
+            esc_attr(isset($args['default']) ? $args['default'] : '#000000')
+        );
+
+        if ($description) {
+            printf('<p class="description">%s</p>', esc_html($description));
+        }
     }
 }

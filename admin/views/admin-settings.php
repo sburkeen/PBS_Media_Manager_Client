@@ -30,6 +30,9 @@ $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'api';
         <a href="?page=pbs-schedule-settings&tab=display" class="nav-tab <?php echo $active_tab === 'display' ? 'nav-tab-active' : ''; ?>">
             Display Options
         </a>
+        <a href="?page=pbs-schedule-settings&tab=branding" class="nav-tab <?php echo $active_tab === 'branding' ? 'nav-tab-active' : ''; ?>">
+            Branding
+        </a>
         <a href="?page=pbs-schedule-settings&tab=cache" class="nav-tab <?php echo $active_tab === 'cache' ? 'nav-tab-active' : ''; ?>">
             Cache Settings
         </a>
@@ -51,6 +54,13 @@ $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'api';
             case 'display':
                 settings_fields('pbs_schedule_display');
                 do_settings_sections('pbs_schedule_display');
+                break;
+
+            case 'branding':
+                settings_fields('pbs_schedule_branding');
+                do_settings_sections('pbs_schedule_branding');
+                wp_enqueue_style('wp-color-picker');
+                wp_enqueue_script('wp-color-picker');
                 break;
 
             case 'cache':

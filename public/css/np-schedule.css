@@ -1,0 +1,425 @@
+/**
+ * PBS Schedule Viewer - New Public Styles with np-* classes
+ *
+ * @package PBS_Schedule_Viewer
+ * @version 1.0.0
+ */
+
+/* ========================================
+   CSS Variables (injected via wp_head)
+   ======================================== */
+
+:root {
+    --np-brand-primary: #0051a3;
+    --np-brand-primary-soft: #e6f0ff;
+    --np-brand-text: #1a1a1a;
+    --np-brand-muted: #6b6b6b;
+    --np-brand-border: #d1d5db;
+    --np-brand-surface: #f9fafb;
+    --np-font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ========================================
+   Base Styles
+   ======================================== */
+
+.np-schedule-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: var(--np-font-stack);
+    color: var(--np-brand-text);
+    line-height: 1.6;
+}
+
+/* ========================================
+   Schedule Header
+   ======================================== */
+
+.np-schedule-header {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--np-brand-border);
+}
+
+.np-schedule-header h1 {
+    margin: 0 0 20px 0;
+    font-size: 2em;
+    font-weight: 700;
+    color: var(--np-brand-text);
+}
+
+/* ========================================
+   Time Period Navigation
+   ======================================== */
+
+.np-time-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.np-time-nav-link {
+    display: inline-block;
+    padding: 10px 20px;
+    background: var(--np-brand-surface);
+    border: 1px solid var(--np-brand-border);
+    border-radius: 6px;
+    color: var(--np-brand-text);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.np-time-nav-link:hover {
+    background: var(--np-brand-primary-soft);
+    border-color: var(--np-brand-primary);
+}
+
+.np-time-nav-link.active {
+    background: var(--np-brand-primary);
+    border-color: var(--np-brand-primary);
+    color: #ffffff;
+}
+
+.np-time-period-info {
+    margin: 10px 0 0 0;
+    padding: 10px 15px;
+    background: var(--np-brand-surface);
+    border-left: 3px solid var(--np-brand-primary);
+    color: var(--np-brand-muted);
+    font-size: 0.95em;
+}
+
+/* ========================================
+   Feed Sections
+   ======================================== */
+
+.np-feed-section {
+    margin-bottom: 40px;
+}
+
+.np-feed-section h2 {
+    margin: 0 0 20px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--np-brand-border);
+    font-size: 1.5em;
+    font-weight: 600;
+    color: var(--np-brand-text);
+}
+
+/* ========================================
+   Listings
+   ======================================== */
+
+.np-listings {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.np-listing-item {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #ffffff;
+    border: 1px solid var(--np-brand-border);
+    border-radius: 6px;
+    transition: box-shadow 0.2s ease;
+}
+
+.np-listing-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.np-listing-time {
+    flex-shrink: 0;
+    width: 80px;
+    font-weight: 600;
+    font-size: 1.1em;
+    color: var(--np-brand-primary);
+}
+
+.np-listing-content {
+    flex: 1;
+}
+
+.np-show-title {
+    margin: 0 0 5px 0;
+    font-size: 1.15em;
+    font-weight: 600;
+    color: var(--np-brand-text);
+}
+
+.np-episode-title {
+    margin: 0 0 10px 0;
+    font-style: italic;
+    color: var(--np-brand-muted);
+}
+
+.np-duration {
+    margin: 5px 0;
+    font-size: 0.9em;
+    color: var(--np-brand-muted);
+}
+
+.np-description {
+    margin: 10px 0;
+    color: var(--np-brand-text);
+    line-height: 1.5;
+}
+
+.np-show-link {
+    margin-top: 10px;
+}
+
+.np-show-link a {
+    display: inline-block;
+    padding: 6px 14px;
+    background: var(--np-brand-primary);
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.np-show-link a:hover {
+    background: #003d7a;
+}
+
+/* ========================================
+   Show Page Styles
+   ======================================== */
+
+.np-show-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: var(--np-font-stack);
+    color: var(--np-brand-text);
+}
+
+.np-show-header {
+    margin-bottom: 30px;
+}
+
+.np-show-header h1 {
+    margin: 0 0 15px 0;
+    font-size: 2.5em;
+    font-weight: 700;
+    color: var(--np-brand-text);
+}
+
+.np-show-meta {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    font-size: 0.95em;
+    color: var(--np-brand-muted);
+}
+
+.np-show-description {
+    margin: 20px 0;
+    font-size: 1.05em;
+    line-height: 1.7;
+    color: var(--np-brand-text);
+}
+
+/* ========================================
+   Seasons & Episodes
+   ======================================== */
+
+.np-season-section {
+    margin-bottom: 40px;
+}
+
+.np-season-section h2 {
+    margin: 0 0 20px 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--np-brand-border);
+    font-size: 1.75em;
+    font-weight: 600;
+    color: var(--np-brand-text);
+}
+
+.np-episodes-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.np-episode-item {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #ffffff;
+    border: 1px solid var(--np-brand-border);
+    border-radius: 6px;
+}
+
+.np-episode-meta {
+    margin-bottom: 8px;
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--np-brand-primary);
+}
+
+.np-episode-title {
+    margin: 0 0 10px 0;
+    font-size: 1.15em;
+    font-weight: 600;
+    color: var(--np-brand-text);
+}
+
+.np-episode-description {
+    margin: 0;
+    line-height: 1.6;
+    color: var(--np-brand-text);
+}
+
+/* ========================================
+   Extras & Features
+   ======================================== */
+
+.np-extras-section {
+    margin-bottom: 40px;
+}
+
+.np-extras-section h2 {
+    margin: 0 0 20px 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--np-brand-border);
+    font-size: 1.75em;
+    font-weight: 600;
+    color: var(--np-brand-text);
+}
+
+.np-extras-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.np-extra-item {
+    margin-bottom: 15px;
+    padding: 12px;
+    background: var(--np-brand-surface);
+    border-left: 3px solid var(--np-brand-primary);
+    border-radius: 4px;
+}
+
+.np-extra-title {
+    margin: 0 0 5px 0;
+    font-weight: 600;
+    color: var(--np-brand-text);
+}
+
+.np-extra-duration {
+    font-size: 0.9em;
+    color: var(--np-brand-muted);
+}
+
+/* ========================================
+   Upcoming Schedule
+   ======================================== */
+
+.np-upcoming-section {
+    margin-bottom: 40px;
+}
+
+.np-upcoming-section h2 {
+    margin: 0 0 20px 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--np-brand-border);
+    font-size: 1.75em;
+    font-weight: 600;
+    color: var(--np-brand-text);
+}
+
+.np-upcoming-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.np-upcoming-item {
+    margin-bottom: 12px;
+    padding: 12px 15px;
+    background: #ffffff;
+    border: 1px solid var(--np-brand-border);
+    border-radius: 4px;
+    font-size: 0.95em;
+}
+
+.np-upcoming-date {
+    font-weight: 600;
+    color: var(--np-brand-primary);
+}
+
+.np-upcoming-time {
+    color: var(--np-brand-text);
+}
+
+.np-upcoming-feed {
+    color: var(--np-brand-muted);
+}
+
+.np-upcoming-episode {
+    font-style: italic;
+    color: var(--np-brand-muted);
+}
+
+/* ========================================
+   Empty State
+   ======================================== */
+
+.np-empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--np-brand-muted);
+}
+
+.np-empty-state p {
+    margin: 0;
+    font-size: 1.1em;
+}
+
+/* ========================================
+   Responsive Design
+   ======================================== */
+
+@media (max-width: 768px) {
+    .np-schedule-wrapper,
+    .np-show-page {
+        padding: 15px;
+    }
+
+    .np-listing-item {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .np-listing-time {
+        width: auto;
+    }
+
+    .np-time-nav {
+        flex-direction: column;
+    }
+
+    .np-time-nav-link {
+        text-align: center;
+    }
+
+    .np-show-header h1 {
+        font-size: 2em;
+    }
+
+    .np-schedule-header h1 {
+        font-size: 1.75em;
+    }
+}

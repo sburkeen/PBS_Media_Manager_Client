@@ -106,20 +106,20 @@ if (!empty($nola_root)) {
 }
 ?>
 
-<article class="pbs-show-clean">
-    <header class="pbs-show-clean-header">
+<article class="np-show-page">
+    <header class="np-show-header">
         <h1><?php the_title(); ?></h1>
-        <div class="pbs-show-clean-description">
+        <div class="np-show-description">
             <?php the_content(); ?>
         </div>
     </header>
 
     <?php if (!empty($episodes_by_season)) : ?>
         <?php foreach ($episodes_by_season as $season_ordinal => $season_data) : ?>
-            <section class="pbs-show-season-section">
+            <section class="np-season-section">
                 <h2>Episodes (Season <?php echo esc_html($season_ordinal); ?>)</h2>
 
-                <ol class="pbs-show-episodes-clean">
+                <ol class="np-episodes-list">
                     <?php foreach ($season_data['episodes'] as $index => $episode) : ?>
                         <?php
                         $episode_title = isset($episode['attributes']['title']) ? $episode['attributes']['title'] : 'Untitled Episode';
@@ -137,25 +137,25 @@ if (!empty($nola_root)) {
                         }
                         ?>
 
-                        <li class="pbs-episode-clean">
-                            <div class="pbs-episode-clean-title">
-                                <strong><?php echo esc_html($episode_title); ?></strong>
-                            </div>
-
-                            <div class="pbs-episode-clean-meta">
+                        <li class="np-episode-item">
+                            <div class="np-episode-meta">
                                 S<?php echo esc_html($season_ordinal); ?> E<?php echo esc_html($episode_ordinal); ?>
                                 <?php if ($duration_text) : ?>
                                     · <?php echo esc_html($duration_text); ?>
                                 <?php endif; ?>
                             </div>
 
+                            <div class="np-episode-title">
+                                <strong><?php echo esc_html($episode_title); ?></strong>
+                            </div>
+
                             <?php if ($episode_description) : ?>
-                                <div class="pbs-episode-clean-description">
+                                <div class="np-episode-description">
                                     <?php echo esc_html($episode_description); ?>
                                 </div>
                             <?php endif; ?>
 
-                            <div class="pbs-episode-clean-link">
+                            <div class="np-show-link">
                                 <a href="#">Watch episode</a>
                             </div>
                         </li>
@@ -166,10 +166,10 @@ if (!empty($nola_root)) {
     <?php endif; ?>
 
     <?php if (!empty($extras)) : ?>
-        <section class="pbs-show-extras-section">
+        <section class="np-extras-section">
             <h2>Extras + Features</h2>
 
-            <ul class="pbs-show-extras-clean">
+            <ul class="np-extras-list">
                 <?php foreach ($extras as $extra) : ?>
                     <?php
                     $extra_title = isset($extra['attributes']['title']) ? $extra['attributes']['title'] : 'Untitled';
@@ -180,13 +180,13 @@ if (!empty($nola_root)) {
                     }
                     ?>
 
-                    <li class="pbs-extra-clean">
-                        <div class="pbs-extra-clean-title">
+                    <li class="np-extra-item">
+                        <div class="np-extra-title">
                             <strong><?php echo esc_html($extra_title); ?></strong>
                         </div>
 
                         <?php if ($duration_text) : ?>
-                            <div class="pbs-extra-clean-duration">
+                            <div class="np-extra-duration">
                                 <?php echo esc_html($duration_text); ?>
                                 <?php if ($extra_description) : ?>
                                     · <?php echo esc_html($extra_description); ?>
@@ -194,7 +194,7 @@ if (!empty($nola_root)) {
                             </div>
                         <?php endif; ?>
 
-                        <div class="pbs-extra-clean-link">
+                        <div class="np-show-link">
                             <a href="#">Watch clip</a>
                         </div>
                     </li>
@@ -204,10 +204,10 @@ if (!empty($nola_root)) {
     <?php endif; ?>
 
     <?php if (!empty($upcoming_schedule)) : ?>
-        <section class="pbs-show-upcoming-section">
+        <section class="np-upcoming-section">
             <h2>Upcoming TV Schedule</h2>
 
-            <ul class="pbs-show-upcoming-clean">
+            <ul class="np-upcoming-list">
                 <?php
                 $timezone = isset($schedule['timezone']) ? $schedule['timezone'] : 'America/New_York';
                 foreach ($upcoming_schedule as $upcoming) :
@@ -215,10 +215,12 @@ if (!empty($nola_root)) {
                     $time_formatted = PBS_TVSS_API_Client::format_time($upcoming['listing']['start_time'], $timezone);
                     $episode_title = isset($upcoming['listing']['episode_title']) ? $upcoming['listing']['episode_title'] : '';
                 ?>
-                    <li class="pbs-upcoming-clean">
-                        <?php echo esc_html($date_formatted); ?> · <?php echo esc_html($time_formatted); ?> · <?php echo esc_html($upcoming['feed']); ?>
+                    <li class="np-upcoming-item">
+                        <span class="np-upcoming-date"><?php echo esc_html($date_formatted); ?></span> ·
+                        <span class="np-upcoming-time"><?php echo esc_html($time_formatted); ?></span> ·
+                        <span class="np-upcoming-feed"><?php echo esc_html($upcoming['feed']); ?></span>
                         <?php if ($episode_title) : ?>
-                            · <em><?php echo esc_html($episode_title); ?></em>
+                            · <span class="np-upcoming-episode"><em><?php echo esc_html($episode_title); ?></em></span>
                         <?php endif; ?>
                     </li>
                 <?php endforeach; ?>

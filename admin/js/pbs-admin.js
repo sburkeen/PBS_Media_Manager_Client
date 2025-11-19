@@ -269,6 +269,11 @@
             loadStationFeeds(stationId);
         }
 
+        // Initialize WordPress color picker for branding fields
+        if (typeof $.fn.wpColorPicker !== 'undefined') {
+            $('.pbs-color-field').wpColorPicker();
+        }
+
     });
 
 })(jQuery);

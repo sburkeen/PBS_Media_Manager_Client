@@ -36,6 +36,7 @@ class PBS_Schedule_Viewer_Public {
     private function __construct() {
         add_action('wp_ajax_pbs_refresh_schedule', array($this, 'ajax_refresh_schedule'));
         add_action('wp_ajax_nopriv_pbs_refresh_schedule', array($this, 'ajax_refresh_schedule'));
+        add_action('wp_head', array($this, 'add_brand_css_variables'));
         add_action('wp_head', array($this, 'add_custom_css'));
         add_filter('single_template', array($this, 'load_show_template'));
     }
@@ -122,6 +123,32 @@ class PBS_Schedule_Viewer_Public {
         }
 
         return $schedule;
+    }
+
+    /**
+     * Add brand CSS variables to head
+     */
+    public function add_brand_css_variables() {
+        // Get branding options with defaults
+        $primary = get_option('pbs_schedule_brand_primary', '#0051a3');
+        $primary_soft = get_option('pbs_schedule_brand_primary_soft', '#e6f0ff');
+        $text = get_option('pbs_schedule_brand_text', '#1a1a1a');
+        $muted = get_option('pbs_schedule_brand_muted', '#6b6b6b');
+        $border = get_option('pbs_schedule_brand_border', '#d1d5db');
+        $surface = get_option('pbs_schedule_brand_surface', '#f9fafb');
+        $font = get_option('pbs_schedule_brand_font', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif');
+
+        echo '<style type="text/css">' . "\n";
+        echo ':root {' . "\n";
+        echo '  --np-brand-primary: ' . esc_attr($primary) . ';' . "\n";
+        echo '  --np-brand-primary-soft: ' . esc_attr($primary_soft) . ';' . "\n";
+        echo '  --np-brand-text: ' . esc_attr($text) . ';' . "\n";
+        echo '  --np-brand-muted: ' . esc_attr($muted) . ';' . "\n";
+        echo '  --np-brand-border: ' . esc_attr($border) . ';' . "\n";
+        echo '  --np-brand-surface: ' . esc_attr($surface) . ';' . "\n";
+        echo '  --np-font-stack: ' . esc_attr($font) . ';' . "\n";
+        echo '}' . "\n";
+        echo '</style>' . "\n";
     }
 
     /**

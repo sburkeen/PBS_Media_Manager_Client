@@ -216,10 +216,18 @@ class PBS_Schedule_Viewer {
      * Enqueue public assets
      */
     public function enqueue_public_assets() {
-        // CSS
+        // Legacy CSS
         wp_enqueue_style(
             'pbs-schedule-viewer',
             PBS_SCHEDULE_VIEWER_PLUGIN_URL . 'public/css/pbs-viewer.css',
+            array(),
+            PBS_SCHEDULE_VIEWER_VERSION
+        );
+
+        // New branded CSS with np-* classes
+        wp_enqueue_style(
+            'np-schedule-viewer',
+            PBS_SCHEDULE_VIEWER_PLUGIN_URL . 'public/css/np-schedule.css',
             array(),
             PBS_SCHEDULE_VIEWER_VERSION
         );

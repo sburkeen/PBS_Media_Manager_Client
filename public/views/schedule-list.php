@@ -46,15 +46,15 @@ $time_periods = array(
 );
 ?>
 
-<article class="pbs-schedule-clean">
-    <header class="pbs-schedule-clean-header">
+<article class="np-schedule-wrapper">
+    <header class="np-schedule-header">
         <h1>TV Schedule for <?php echo esc_html($schedule_date); ?></h1>
 
-        <nav class="pbs-time-period-nav">
+        <nav class="np-time-nav">
             <?php foreach ($time_periods as $period_key => $period_label) : ?>
                 <?php
                 $is_active = ($current_period === $period_key);
-                $class = $is_active ? 'pbs-time-period-link active' : 'pbs-time-period-link';
+                $class = $is_active ? 'np-time-nav-link active' : 'np-time-nav-link';
 
                 // Build URL with time_period parameter
                 $current_url = add_query_arg(array());
@@ -70,7 +70,7 @@ $time_periods = array(
             <?php endforeach; ?>
         </nav>
 
-        <p class="pbs-time-period-info">
+        <p class="np-time-period-info">
             <?php
             switch ($current_period) {
                 case 'early_morning':
@@ -97,41 +97,41 @@ $time_periods = array(
         <?php foreach ($schedule['feeds'] as $feed) : ?>
             <?php if (!empty($feed['listings'])) : ?>
 
-                <section class="pbs-schedule-feed-section">
+                <section class="np-feed-section">
                     <h2><?php echo esc_html($feed['full_name']); ?></h2>
 
-                    <ul class="pbs-schedule-listings-clean">
+                    <ul class="np-listings">
                         <?php foreach ($feed['listings'] as $listing) : ?>
-                            <li class="pbs-schedule-item-clean">
-                                <div class="pbs-schedule-time-clean">
+                            <li class="np-listing-item">
+                                <div class="np-listing-time">
                                     <strong><?php echo esc_html(PBS_TVSS_API_Client::format_time($listing['start_time'], $timezone)); ?></strong>
                                 </div>
 
-                                <div class="pbs-schedule-show-info">
-                                    <div class="pbs-schedule-show-title">
+                                <div class="np-listing-content">
+                                    <div class="np-show-title">
                                         <strong><?php echo esc_html($listing['title']); ?></strong>
                                     </div>
 
                                     <?php if (!empty($listing['episode_title'])) : ?>
-                                        <div class="pbs-schedule-episode-title">
+                                        <div class="np-episode-title">
                                             <em><?php echo esc_html($listing['episode_title']); ?></em>
                                         </div>
                                     <?php endif; ?>
 
                                     <?php if (!empty($listing['minutes'])) : ?>
-                                        <div class="pbs-schedule-duration-clean">
+                                        <div class="np-duration">
                                             Duration: <?php echo esc_html(format_duration($listing['minutes'])); ?>
                                         </div>
                                     <?php endif; ?>
 
                                     <?php if (!empty($listing['description']) || !empty($listing['episode_description'])) : ?>
-                                        <div class="pbs-schedule-description-clean">
-                                            Description: <?php echo esc_html(!empty($listing['episode_description']) ? $listing['episode_description'] : $listing['description']); ?>
+                                        <div class="np-description">
+                                            <?php echo esc_html(!empty($listing['episode_description']) ? $listing['episode_description'] : $listing['description']); ?>
                                         </div>
                                     <?php endif; ?>
 
                                     <?php if (isset($listing['show_url'])) : ?>
-                                        <div class="pbs-schedule-link-clean">
+                                        <div class="np-show-link">
                                             <a href="<?php echo esc_url($listing['show_url']); ?>">View show page</a>
                                         </div>
                                     <?php endif; ?>
@@ -145,6 +145,8 @@ $time_periods = array(
         <?php endforeach; ?>
 
     <?php else : ?>
-        <p>No schedule data available.</p>
+        <div class="np-empty-state">
+            <p>No schedule data available.</p>
+        </div>
     <?php endif; ?>
 </article>
