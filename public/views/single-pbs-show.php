@@ -127,13 +127,26 @@ if (!empty($nola_root)) {
                         $episode_ordinal = isset($episode['attributes']['ordinal']) ? $episode['attributes']['ordinal'] : ($index + 1);
                         $episode_id = $episode['id'];
 
-                        // Get episode duration from assets
+                        // Get episode duration and watch URL from assets
                         $duration_text = '';
+                        $watch_url = '';
+
                         if (!empty($mm_client)) {
                             $assets = $mm_client->get_episode_assets($episode_id, 'full_length', 'all_members');
-                            if (!empty($assets) && is_array($assets) && isset($assets[0]['attributes']['duration'])) {
-                                $duration_text = format_show_duration($assets[0]['attributes']['duration']);
+                            if (!empty($assets) && is_array($assets)) {
+                                if (isset($assets[0]['attributes']['duration'])) {
+                                    $duration_text = format_show_duration($assets[0]['attributes']['duration']);
+                                }
+                                // Try to get watch URL from asset
+                                if (isset($assets[0]['attributes']['url'])) {
+                                    $watch_url = $assets[0]['attributes']['url'];
+                                }
                             }
+                        }
+
+                        // Fallback: construct PBS video player URL using episode slug
+                        if (empty($watch_url) && isset($episode['attributes']['slug'])) {
+                            $watch_url = 'https://www.pbs.org/video/' . $episode['attributes']['slug'] . '/';
                         }
                         ?>
 
@@ -155,9 +168,11 @@ if (!empty($nola_root)) {
                                 </div>
                             <?php endif; ?>
 
-                            <div class="np-show-link">
-                                <a href="#">Watch episode</a>
-                            </div>
+                            <?php if ($watch_url) : ?>
+                                <div class="np-show-link">
+                                    <a href="<?php echo esc_url($watch_url); ?>" target="_blank" rel="noopener">Watch episode</a>
+                                </div>
+                            <?php endif; ?>
                         </li>
                     <?php endforeach; ?>
                 </ol>
@@ -175,8 +190,19 @@ if (!empty($nola_root)) {
                     $extra_title = isset($extra['attributes']['title']) ? $extra['attributes']['title'] : 'Untitled';
                     $extra_description = isset($extra['attributes']['description_short']) ? $extra['attributes']['description_short'] : '';
                     $duration_text = '';
+                    $extra_url = '';
+
                     if (isset($extra['attributes']['duration'])) {
                         $duration_text = format_show_duration($extra['attributes']['duration']);
+                    }
+
+                    // Try to get watch URL from asset attributes
+                    if (isset($extra['attributes']['url'])) {
+                        $extra_url = $extra['attributes']['url'];
+                    }
+                    // Fallback: construct PBS video player URL using slug
+                    elseif (isset($extra['attributes']['slug'])) {
+                        $extra_url = 'https://www.pbs.org/video/' . $extra['attributes']['slug'] . '/';
                     }
                     ?>
 
@@ -194,9 +220,11 @@ if (!empty($nola_root)) {
                             </div>
                         <?php endif; ?>
 
-                        <div class="np-show-link">
-                            <a href="#">Watch clip</a>
-                        </div>
+                        <?php if ($extra_url) : ?>
+                            <div class="np-show-link">
+                                <a href="<?php echo esc_url($extra_url); ?>" target="_blank" rel="noopener">Watch clip</a>
+                            </div>
+                        <?php endif; ?>
                     </li>
                 <?php endforeach; ?>
             </ul>

@@ -372,7 +372,26 @@ class PBS_TVSS_API_Client {
      * @return array|WP_Error
      */
     public function search_stations($query) {
-        $url = $this->station_finder_endpoint . 'stations/?call_sign=' . urlencode($query);
+        // PBS Station Finder API supports multiple search parameters
+        // Try call_sign first, but also support searching by name or zip
+        $search_params = '';
+
+        // If query looks like a zip code (5 digits)
+        if (preg_match('/^\d{5}$/', $query)) {
+            $search_params = 'zip=' . urlencode($query);
+        }
+        // If query looks like a callsign (4-5 uppercase letters)
+        elseif (preg_match('/^[A-Z]{4,5}$/i', $query)) {
+            $search_params = 'call_sign=' . urlencode(strtoupper($query));
+        }
+        // Otherwise search by name
+        else {
+            $search_params = 'q=' . urlencode($query);
+        }
+
+        $url = $this->station_finder_endpoint . 'stations/?' . $search_params;
+
+        error_log('PBS Station Search URL: ' . $url);
 
         $response = wp_remote_get($url, array(
             'timeout' => 30,
@@ -388,7 +407,7 @@ class PBS_TVSS_API_Client {
         $body = wp_remote_retrieve_body($response);
 
         if ($code !== 200) {
-            error_log(sprintf('PBS Station Search HTTP Error %d: %s', $code, $body));
+            error_log(sprintf('PBS Station Search HTTP Error %d: %s', $code, substr($body, 0, 200)));
             return new WP_Error('api_error', sprintf('Failed to search stations (HTTP %d)', $code));
         }
 
@@ -399,18 +418,30 @@ class PBS_TVSS_API_Client {
             return new WP_Error('json_error', 'Failed to decode JSON response');
         }
 
-        // Log the response for debugging
-        error_log('PBS Station Search Response: ' . print_r($data, true));
-
-        // PBS Station Finder API returns results wrapped in a 'results' key
-        // Return in a format that matches what the JavaScript expects
-        if (isset($data['results']) && is_array($data['results'])) {
-            return array('results' => $data['results']);
-        } elseif (is_array($data) && !isset($data['results'])) {
-            // If data is already an array of stations, wrap it
-            return array('results' => $data);
+        // Log the raw response structure for debugging
+        error_log('PBS Station Search Response keys: ' . print_r(array_keys($data), true));
+        if (!empty($data)) {
+            error_log('PBS Station Search Response (first 500 chars): ' . substr(print_r($data, true), 0, 500));
         }
 
+        // Handle different response formats
+        // Format 1: {"results": [...]}
+        if (isset($data['results']) && is_array($data['results'])) {
+            return array('results' => $data['results']);
+        }
+        // Format 2: Direct array of stations
+        elseif (is_array($data) && !isset($data['errors'])) {
+            // Check if it's a paginated response
+            if (isset($data['data']) && is_array($data['data'])) {
+                return array('results' => $data['data']);
+            }
+            // Check if first element looks like a station
+            if (!empty($data) && isset($data[0]['call_sign'])) {
+                return array('results' => $data);
+            }
+        }
+
+        // If we couldn't parse it, return the raw data
         return $data;
     }
 
