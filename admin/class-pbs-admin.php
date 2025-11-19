@@ -263,55 +263,119 @@ class PBS_Schedule_Viewer_Admin {
         $mm_endpoint = get_option('pbs_schedule_mm_endpoint', '');
 
         if (empty($mm_id) || empty($mm_secret)) {
-            wp_send_json_error('Media Manager API not configured');
+            wp_send_json_error('Media Manager API not configured. Please add your Client ID and Client Secret in the API Credentials tab.');
         }
 
-        $mm_client = new PBS_Media_Manager_API_Client($mm_id, $mm_secret, $mm_endpoint);
-        $shows = $mm_client->get_shows();
-
-        if (is_wp_error($shows) || !is_array($shows)) {
-            wp_send_json_error('Failed to fetch shows from Media Manager');
+        if (empty($mm_endpoint)) {
+            $mm_endpoint = 'https://media.services.pbs.org/api/v1';
         }
 
-        $created = 0;
-        $updated = 0;
+        error_log('PBS Sync Shows: Starting sync with endpoint ' . $mm_endpoint);
 
-        foreach ($shows as $show) {
-            $show_id = $show['id'];
+        try {
+            $mm_client = new PBS_Media_Manager_API_Client($mm_id, $mm_secret, $mm_endpoint);
 
-            // Check if post exists
-            $existing = get_posts(array(
-                'post_type' => 'pbs_show',
-                'meta_key' => '_pbs_show_id',
-                'meta_value' => $show_id,
-                'posts_per_page' => 1
-            ));
+            // Limit to first page for testing - remove page-size to get all shows
+            $shows = $mm_client->get_shows(array('page-size' => 50));
 
-            if (empty($existing)) {
-                // Create new post
-                $post_id = wp_insert_post(array(
+            // Log the response for debugging
+            error_log('PBS Sync Shows: API Response type: ' . gettype($shows));
+
+            if (is_wp_error($shows)) {
+                error_log('PBS Sync Shows: WP_Error - ' . $shows->get_error_message());
+                wp_send_json_error('Failed to fetch shows: ' . $shows->get_error_message());
+            }
+
+            if (!is_array($shows)) {
+                error_log('PBS Sync Shows: Response is not an array: ' . print_r($shows, true));
+                wp_send_json_error('Invalid response from Media Manager API. Check error logs for details.');
+            }
+
+            // Check if it's an error response array
+            if (isset($shows['errors']) && is_array($shows['errors'])) {
+                $error_msg = 'API Error: ';
+                if (isset($shows['errors'][0]['title'])) {
+                    $error_msg .= $shows['errors'][0]['title'];
+                }
+                if (isset($shows['errors'][0]['detail'])) {
+                    $error_msg .= ' - ' . $shows['errors'][0]['detail'];
+                }
+                error_log('PBS Sync Shows: ' . $error_msg);
+                wp_send_json_error($error_msg);
+            }
+
+            if (empty($shows)) {
+                error_log('PBS Sync Shows: No shows returned from API');
+                wp_send_json_error('No shows found in Media Manager. This could mean your API credentials are valid but no shows are available.');
+            }
+
+            error_log('PBS Sync Shows: Found ' . count($shows) . ' shows');
+
+            $created = 0;
+            $updated = 0;
+            $errors = 0;
+
+            foreach ($shows as $show) {
+                if (!isset($show['id']) || !isset($show['attributes']['title'])) {
+                    error_log('PBS Sync Shows: Invalid show data: ' . print_r($show, true));
+                    $errors++;
+                    continue;
+                }
+
+                $show_id = $show['id'];
+                $title = $show['attributes']['title'];
+
+                // Check if post exists
+                $existing = get_posts(array(
                     'post_type' => 'pbs_show',
-                    'post_title' => $show['attributes']['title'],
-                    'post_content' => isset($show['attributes']['description_long']) ?
-                        $show['attributes']['description_long'] : '',
-                    'post_excerpt' => isset($show['attributes']['description_short']) ?
-                        $show['attributes']['description_short'] : '',
-                    'post_status' => 'publish',
+                    'meta_key' => '_pbs_show_id',
+                    'meta_value' => $show_id,
+                    'posts_per_page' => 1
                 ));
 
-                if (!is_wp_error($post_id)) {
-                    update_post_meta($post_id, '_pbs_show_id', $show_id);
-                    $created++;
-                }
-            } else {
-                $updated++;
-            }
-        }
+                if (empty($existing)) {
+                    // Create new post
+                    $post_id = wp_insert_post(array(
+                        'post_type' => 'pbs_show',
+                        'post_title' => $title,
+                        'post_content' => isset($show['attributes']['description_long']) ?
+                            $show['attributes']['description_long'] : '',
+                        'post_excerpt' => isset($show['attributes']['description_short']) ?
+                            $show['attributes']['description_short'] : '',
+                        'post_status' => 'publish',
+                    ));
 
-        wp_send_json_success(array(
-            'created' => $created,
-            'updated' => $updated,
-            'total' => count($shows)
-        ));
+                    if (!is_wp_error($post_id)) {
+                        update_post_meta($post_id, '_pbs_show_id', $show_id);
+
+                        // Store additional metadata
+                        if (isset($show['attributes']['nola_root'])) {
+                            update_post_meta($post_id, '_pbs_nola_root', $show['attributes']['nola_root']);
+                        }
+
+                        $created++;
+                        error_log(sprintf('PBS Sync Shows: Created post for show "%s" (ID: %s)', $title, $show_id));
+                    } else {
+                        error_log(sprintf('PBS Sync Shows: Failed to create post for show "%s": %s', $title, $post_id->get_error_message()));
+                        $errors++;
+                    }
+                } else {
+                    $updated++;
+                }
+            }
+
+            error_log(sprintf('PBS Sync Shows: Complete - Created: %d, Updated: %d, Errors: %d', $created, $updated, $errors));
+
+            wp_send_json_success(array(
+                'created' => $created,
+                'updated' => $updated,
+                'errors' => $errors,
+                'total' => count($shows)
+            ));
+
+        } catch (Exception $e) {
+            error_log('PBS Sync Shows Exception: ' . $e->getMessage());
+            wp_send_json_error('Exception occurred: ' . $e->getMessage());
+        }
     }
 }

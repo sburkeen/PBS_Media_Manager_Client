@@ -261,20 +261,29 @@
                     nonce: pbsScheduleAdmin.nonce
                 },
                 success: function(response) {
+                    console.log('Sync shows response:', response);
                     if (response.success) {
-                        $results.html(
-                            '<p style="color: #46b450;">' +
-                            'Successfully synced ' + response.data.total + ' shows. ' +
-                            'Created: ' + response.data.created + ', ' +
-                            'Updated: ' + response.data.updated +
-                            '</p>'
-                        );
+                        var message = 'Successfully synced ' + response.data.total + ' shows. ' +
+                                    'Created: ' + response.data.created + ', ' +
+                                    'Updated: ' + response.data.updated;
+
+                        if (response.data.errors && response.data.errors > 0) {
+                            message += ', Errors: ' + response.data.errors;
+                        }
+
+                        $results.html('<p style="color: #46b450;">' + message + '</p>');
                     } else {
+                        console.error('Sync shows failed:', response.data);
                         $results.html('<p style="color: #dc3232;">Error: ' + response.data + '</p>');
                     }
                 },
-                error: function() {
-                    $results.html('<p style="color: #dc3232;">Error syncing shows</p>');
+                error: function(xhr, status, error) {
+                    console.error('Sync shows AJAX error:', status, error, xhr.responseText);
+                    var errorMsg = 'Error syncing shows';
+                    if (xhr.responseJSON && xhr.responseJSON.data) {
+                        errorMsg += ': ' + xhr.responseJSON.data;
+                    }
+                    $results.html('<p style="color: #dc3232;">' + errorMsg + '</p>');
                 },
                 complete: function() {
                     $button.prop('disabled', false).text('Sync Shows from Media Manager');
