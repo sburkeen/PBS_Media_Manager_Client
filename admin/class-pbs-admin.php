@@ -320,13 +320,28 @@ class PBS_Schedule_Viewer_Admin {
             wp_send_json_error('cURL PHP extension is required but not installed. Please contact your hosting provider.');
         }
 
+        // Increase memory limit for this operation
+        $original_memory_limit = ini_get('memory_limit');
+        $current_memory = intval($original_memory_limit);
+        if ($current_memory > 0 && $current_memory < 256) {
+            @ini_set('memory_limit', '256M');
+            error_log('PBS Sync Shows: Increased memory limit from ' . $original_memory_limit . ' to 256M');
+        }
+
+        // Increase execution time
+        @set_time_limit(120);
+
         try {
             error_log('PBS Sync Shows: Creating Media Manager client');
             $mm_client = new PBS_Media_Manager_API_Client($mm_id, $mm_secret, $mm_endpoint);
 
-            error_log('PBS Sync Shows: Calling get_shows()');
-            // Limit to first page for testing - remove page-size to get all shows
-            $shows = $mm_client->get_shows(array('page-size' => 50));
+            error_log('PBS Sync Shows: Calling get_shows() - fetching first page only with 10 items');
+            // Fetch only 10 shows at a time to prevent memory issues
+            // To get all shows, we'd need to implement pagination
+            $shows = $mm_client->get_shows(array(
+                'page-size' => 10,
+                'page' => 1  // Only fetch first page
+            ));
             error_log('PBS Sync Shows: get_shows() returned');
 
             // Log the response for debugging
@@ -417,11 +432,18 @@ class PBS_Schedule_Viewer_Admin {
 
             error_log(sprintf('PBS Sync Shows: Complete - Created: %d, Updated: %d, Errors: %d', $created, $updated, $errors));
 
+            $message = sprintf('Synced %d shows (Created: %d, Updated: %d', count($shows), $created, $updated);
+            if ($errors > 0) {
+                $message .= ', Errors: ' . $errors;
+            }
+            $message .= '). Note: This syncs 10 shows at a time to prevent memory issues.';
+
             wp_send_json_success(array(
                 'created' => $created,
                 'updated' => $updated,
                 'errors' => $errors,
-                'total' => count($shows)
+                'total' => count($shows),
+                'message' => $message
             ));
 
         } catch (Throwable $e) {

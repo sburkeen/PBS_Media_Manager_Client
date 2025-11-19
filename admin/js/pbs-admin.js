@@ -263,13 +263,13 @@
                 success: function(response) {
                     console.log('Sync shows response:', response);
                     if (response.success) {
-                        var message = 'Successfully synced ' + response.data.total + ' shows. ' +
-                                    'Created: ' + response.data.created + ', ' +
-                                    'Updated: ' + response.data.updated;
-
-                        if (response.data.errors && response.data.errors > 0) {
-                            message += ', Errors: ' + response.data.errors;
-                        }
+                        // Use the message from the server if available, otherwise build it
+                        var message = response.data.message || (
+                            'Successfully synced ' + response.data.total + ' shows. ' +
+                            'Created: ' + response.data.created + ', ' +
+                            'Updated: ' + response.data.updated +
+                            (response.data.errors && response.data.errors > 0 ? ', Errors: ' + response.data.errors : '')
+                        );
 
                         $results.html('<p style="color: #46b450;">' + message + '</p>');
                     } else {
