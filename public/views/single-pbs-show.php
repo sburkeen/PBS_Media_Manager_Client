@@ -17,12 +17,27 @@ $seasons = array();
 $episodes_by_season = array();
 $extras = array();
 $show_data = null;
+$show_image_url = '';
 
 if (!empty($mm_id) && !empty($mm_secret) && !empty($show_id)) {
     $mm_client = new PBS_Media_Manager_API_Client($mm_id, $mm_secret, $mm_endpoint);
 
     // Get show data
     $show_data = $mm_client->get_show($show_id);
+
+    // Extract show image
+    if (!empty($show_data) && isset($show_data['attributes']['images'])) {
+        foreach ($show_data['attributes']['images'] as $image) {
+            if (isset($image['profile']) && $image['profile'] === 'mezzanine16x9') {
+                $show_image_url = isset($image['url']) ? $image['url'] : '';
+                break;
+            }
+        }
+        // Fallback to first available image
+        if (empty($show_image_url) && !empty($show_data['attributes']['images'][0]['url'])) {
+            $show_image_url = $show_data['attributes']['images'][0]['url'];
+        }
+    }
 
     // Get all seasons
     $seasons = $mm_client->get_show_seasons($show_id);
@@ -108,6 +123,12 @@ if (!empty($nola_root)) {
 
 <article class="np-show-page">
     <header class="np-show-header">
+        <?php if ($show_image_url) : ?>
+            <div class="np-show-image">
+                <img src="<?php echo esc_url($show_image_url); ?>" alt="<?php echo esc_attr(get_the_title()); ?>" />
+            </div>
+        <?php endif; ?>
+
         <h1><?php the_title(); ?></h1>
         <div class="np-show-description">
             <?php the_content(); ?>
@@ -127,9 +148,24 @@ if (!empty($nola_root)) {
                         $episode_ordinal = isset($episode['attributes']['ordinal']) ? $episode['attributes']['ordinal'] : ($index + 1);
                         $episode_id = $episode['id'];
 
-                        // Get episode duration and watch URL from assets
+                        // Get episode duration, watch URL, and image from assets
                         $duration_text = '';
                         $watch_url = '';
+                        $episode_image_url = '';
+
+                        // Extract episode image from episode attributes
+                        if (isset($episode['attributes']['images']) && is_array($episode['attributes']['images'])) {
+                            foreach ($episode['attributes']['images'] as $image) {
+                                if (isset($image['profile']) && $image['profile'] === 'mezzanine16x9') {
+                                    $episode_image_url = isset($image['url']) ? $image['url'] : '';
+                                    break;
+                                }
+                            }
+                            // Fallback to first available image
+                            if (empty($episode_image_url) && !empty($episode['attributes']['images'][0]['url'])) {
+                                $episode_image_url = $episode['attributes']['images'][0]['url'];
+                            }
+                        }
 
                         if (!empty($mm_client)) {
                             $assets = $mm_client->get_episode_assets($episode_id, 'full_length', 'all_members');
@@ -151,28 +187,36 @@ if (!empty($nola_root)) {
                         ?>
 
                         <li class="np-episode-item">
-                            <div class="np-episode-meta">
-                                S<?php echo esc_html($season_ordinal); ?> E<?php echo esc_html($episode_ordinal); ?>
-                                <?php if ($duration_text) : ?>
-                                    · <?php echo esc_html($duration_text); ?>
+                            <?php if ($episode_image_url) : ?>
+                                <div class="np-episode-image">
+                                    <img src="<?php echo esc_url($episode_image_url); ?>" alt="<?php echo esc_attr($episode_title); ?>" />
+                                </div>
+                            <?php endif; ?>
+
+                            <div class="np-episode-content">
+                                <div class="np-episode-meta">
+                                    S<?php echo esc_html($season_ordinal); ?> E<?php echo esc_html($episode_ordinal); ?>
+                                    <?php if ($duration_text) : ?>
+                                        · <?php echo esc_html($duration_text); ?>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="np-episode-title">
+                                    <strong><?php echo esc_html($episode_title); ?></strong>
+                                </div>
+
+                                <?php if ($episode_description) : ?>
+                                    <div class="np-episode-description">
+                                        <?php echo esc_html($episode_description); ?>
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if ($watch_url) : ?>
+                                    <div class="np-show-link">
+                                        <a href="<?php echo esc_url($watch_url); ?>" target="_blank" rel="noopener">Watch episode</a>
+                                    </div>
                                 <?php endif; ?>
                             </div>
-
-                            <div class="np-episode-title">
-                                <strong><?php echo esc_html($episode_title); ?></strong>
-                            </div>
-
-                            <?php if ($episode_description) : ?>
-                                <div class="np-episode-description">
-                                    <?php echo esc_html($episode_description); ?>
-                                </div>
-                            <?php endif; ?>
-
-                            <?php if ($watch_url) : ?>
-                                <div class="np-show-link">
-                                    <a href="<?php echo esc_url($watch_url); ?>" target="_blank" rel="noopener">Watch episode</a>
-                                </div>
-                            <?php endif; ?>
                         </li>
                     <?php endforeach; ?>
                 </ol>
@@ -191,6 +235,21 @@ if (!empty($nola_root)) {
                     $extra_description = isset($extra['attributes']['description_short']) ? $extra['attributes']['description_short'] : '';
                     $duration_text = '';
                     $extra_url = '';
+                    $extra_image_url = '';
+
+                    // Extract extra/clip image
+                    if (isset($extra['attributes']['images']) && is_array($extra['attributes']['images'])) {
+                        foreach ($extra['attributes']['images'] as $image) {
+                            if (isset($image['profile']) && $image['profile'] === 'mezzanine16x9') {
+                                $extra_image_url = isset($image['url']) ? $image['url'] : '';
+                                break;
+                            }
+                        }
+                        // Fallback to first available image
+                        if (empty($extra_image_url) && !empty($extra['attributes']['images'][0]['url'])) {
+                            $extra_image_url = $extra['attributes']['images'][0]['url'];
+                        }
+                    }
 
                     if (isset($extra['attributes']['duration'])) {
                         $duration_text = format_show_duration($extra['attributes']['duration']);
@@ -207,24 +266,32 @@ if (!empty($nola_root)) {
                     ?>
 
                     <li class="np-extra-item">
-                        <div class="np-extra-title">
-                            <strong><?php echo esc_html($extra_title); ?></strong>
+                        <?php if ($extra_image_url) : ?>
+                            <div class="np-extra-image">
+                                <img src="<?php echo esc_url($extra_image_url); ?>" alt="<?php echo esc_attr($extra_title); ?>" />
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="np-extra-content">
+                            <div class="np-extra-title">
+                                <strong><?php echo esc_html($extra_title); ?></strong>
+                            </div>
+
+                            <?php if ($duration_text) : ?>
+                                <div class="np-extra-duration">
+                                    <?php echo esc_html($duration_text); ?>
+                                    <?php if ($extra_description) : ?>
+                                        · <?php echo esc_html($extra_description); ?>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if ($extra_url) : ?>
+                                <div class="np-show-link">
+                                    <a href="<?php echo esc_url($extra_url); ?>" target="_blank" rel="noopener">Watch clip</a>
+                                </div>
+                            <?php endif; ?>
                         </div>
-
-                        <?php if ($duration_text) : ?>
-                            <div class="np-extra-duration">
-                                <?php echo esc_html($duration_text); ?>
-                                <?php if ($extra_description) : ?>
-                                    · <?php echo esc_html($extra_description); ?>
-                                <?php endif; ?>
-                            </div>
-                        <?php endif; ?>
-
-                        <?php if ($extra_url) : ?>
-                            <div class="np-show-link">
-                                <a href="<?php echo esc_url($extra_url); ?>" target="_blank" rel="noopener">Watch clip</a>
-                            </div>
-                        <?php endif; ?>
                     </li>
                 <?php endforeach; ?>
             </ul>
